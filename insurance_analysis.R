@@ -50,8 +50,8 @@ vif(mlr_full)     # variance inflation factor
 
 
 
-# MLR (transformed + interaction model)
-mlr_log <- lm(sqrt(charges) ~ age + sex + bmi + smoker + region + bmi:smoker + age:smoker,
+# Multiple Linear Regression (transformed + interaction model)
+mlr_log <- lm(sqrt(charges) ~ age + sex + bmi + smoker + region + bmi*smoker + age*smoker,
               data = insurance)
 
 mlr_log_tidy <- tidy(mlr_log, conf.int = 0.95)
@@ -64,3 +64,35 @@ plot(mlr_log, which = 2)    # QQ plot
 
 vif(mlr_log, type = "predictor")
 
+
+
+# Logistic Regression  (Additive model)
+cutoff_value <- quantile(insurance$charges, 0.75)
+high_cost <- ifelse(insurance$charges > cutoff_value, 1, 0)
+
+insurance_logit_add <- glm(high_cost ~ age + sex + bmi + children + smoker + region,
+                           data = insurance,
+                           family = binomial)
+
+summary(insurance_logit_add)
+
+pearson_residuals <- residuals(insurance_logit_add,
+                               type = "pearson")
+dispersion_ratio <- sum(pearson_residuals^2) / df.residual(insurance_logit_add)
+dispersion_ratio
+
+
+
+#Logistic Regression (Interaction model)
+insurance_logit_int <- 
+  glm(high_cost ~ sex + children + region + smoker * age + smoker * bmi,
+      data = insurance,
+      family = binomial)
+
+summary(insurance_logit_int)
+
+
+pearson_residuals_int <- residuals(insurance_logit_int,
+                                   type = "pearson")
+dispersion_ratio_int <- sum(pearson_residuals_int^2) / df.residual(insurance_logit_int)
+dispersion_ratio_int
